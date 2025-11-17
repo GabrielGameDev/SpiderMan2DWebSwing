@@ -1301,7 +1301,7 @@ MonoBehaviour:
   attachableLayers:
     serializedVersion: 2
     m_Bits: 64
-  lineRenderer: {fileID: 337880561785016928, guid: 39c4b1787a49b7a47a889996b775c8a1, type: 3}
+  lineWeb: {fileID: 2067426084851719971, guid: 39c4b1787a49b7a47a889996b775c8a1, type: 3}
   webSpeed: 10
   launchPullForce: 20
   jumpForce: 4

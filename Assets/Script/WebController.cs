@@ -5,7 +5,7 @@ public class WebController : MonoBehaviour
 {
     public HingeJoint2D webJoint;
 	public LayerMask attachableLayers;
-	public LineRenderer lineRenderer;
+	public LineWeb lineWeb;
 	public float webSpeed = 20f;
 
 	public float launchPullForce = 20f;
@@ -16,7 +16,7 @@ public class WebController : MonoBehaviour
 	Rigidbody2D rb;
 	
 	HingeJoint2D currentWebJoint;
-	LineRenderer currentLineRenderer;
+	LineWeb currentLineRenderer;
 
 	private void Start()
 	{
@@ -33,18 +33,20 @@ public class WebController : MonoBehaviour
 		{
 			DettachWeb();
 		}
-		if (currentWebJoint != null)
-		{
-			DrawRope(currentWebJoint.transform.position, currentLineRenderer);
-		}
+		//if (currentWebJoint != null)
+		//{
+		//	DrawRope(currentWebJoint.transform.position, currentLineRenderer);
+		//}
 	}
 
 	void DettachWeb()
 	{
-		currentLineRenderer.GetComponent<FixedJoint2D>().connectedBody = null;
+		FixedJoint2D joint = currentLineRenderer.GetComponent<FixedJoint2D>();
+		if (joint != null)
+			joint.connectedBody = null;
+		currentLineRenderer.ClearRope();
 		currentLineRenderer = null;
-		currentWebJoint = null;
-		
+		currentWebJoint = null;		
 	}
 
 	async void AttachWeb()
@@ -65,10 +67,9 @@ public class WebController : MonoBehaviour
 		await Awaitable.WaitForSecondsAsync(0.1f);
 
 		HingeJoint2D newJoint = Instantiate(webJoint, mouseWorldPos, Quaternion.identity);
-		LineRenderer newLine = Instantiate(lineRenderer);
-		lineRenderer.transform.position = transform.position;
+		LineWeb newLine = Instantiate(lineWeb);
+		lineWeb.transform.position = transform.position;
 		await AnimateWebShot(mouseWorldPos, newLine);
-
 		
 
 		//DrawRope(mouseWorldPos, newLine);
@@ -77,10 +78,11 @@ public class WebController : MonoBehaviour
 
 		currentWebJoint = newJoint;
 		currentLineRenderer = newLine;
+		currentLineRenderer.webJoint = currentWebJoint.transform;
 
 	}
 
-	async Awaitable AnimateWebShot(Vector2 targetAnchor, LineRenderer line)
+	async Awaitable AnimateWebShot(Vector2 targetAnchor, LineWeb line)
 	{
 		Vector2 startPosition = transform.position;
 		float totalDistance = Vector2.Distance(startPosition, targetAnchor);
@@ -97,10 +99,11 @@ public class WebController : MonoBehaviour
 			
 			Vector2 webTipPosition = Vector2.Lerp(startPosition, targetAnchor, t);
 
-			
-			line.positionCount = 2; 
-			line.SetPosition(0, startPosition); 
-			line.SetPosition(1, webTipPosition); 
+			line.DrawRope(webTipPosition);
+
+			//line.positionCount = 2; 
+			//line.SetPosition(0, startPosition); 
+			//line.SetPosition(1, webTipPosition); 
 
 			//await Awaitable.FixedUpdateAsync();
 			
@@ -112,14 +115,14 @@ public class WebController : MonoBehaviour
 		}
 
 		// Garante que o desenho chegue no ponto exato no final
-		line.SetPosition(1, targetAnchor);
+		line.DrawRope(targetAnchor);
 		line.transform.position = transform.position;
+		
 	}
 
-	private void DrawRope(Vector2 mouseWorldPos, LineRenderer newLine)
+
+	private void OnCollisionEnter2D(Collision2D collision)
 	{
-		newLine.SetPosition(0, transform.position);
-		newLine.SetPosition(1, mouseWorldPos);
-		//newLine.transform.position = transform.position;
+		DettachWeb();
 	}
 }
