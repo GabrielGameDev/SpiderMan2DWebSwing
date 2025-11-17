@@ -9,6 +9,7 @@ public class WebController : MonoBehaviour
 	public float webSpeed = 20f;
 
 	public float launchPullForce = 20f;
+	public float releaseImpulseMultiplier = 1.5f;
 
 	public float jumpForce = 10f;
 	public LayerMask groundLayers;
@@ -18,9 +19,12 @@ public class WebController : MonoBehaviour
 	HingeJoint2D currentWebJoint;
 	LineWeb currentLineRenderer;
 
+	Animator animator;
+	bool onGround = false;
 	private void Start()
 	{
 		rb = GetComponent<Rigidbody2D>();
+		animator = GetComponent<Animator>();
 	}
 
 	private void Update()
@@ -31,27 +35,52 @@ public class WebController : MonoBehaviour
 		}
 		if(Input.GetMouseButtonDown(1) && currentWebJoint != null)
 		{
-			DettachWeb();
+			DettachWeb(true);
 		}
 		//if (currentWebJoint != null)
 		//{
 		//	DrawRope(currentWebJoint.transform.position, currentLineRenderer);
 		//}
+
+		// Verifica se está no chão
+		RaycastHit2D groundHit = Physics2D.Raycast(transform.position, Vector2.down, groundDistance, groundLayers);
+		onGround = groundHit.collider != null;
+		animator.SetBool("onGround", onGround);
+
 	}
 
-	void DettachWeb()
+	void DettachWeb(bool impulse)
 	{
+		if (currentLineRenderer == null)
+			return;
+		
 		FixedJoint2D joint = currentLineRenderer.GetComponent<FixedJoint2D>();
 		if (joint != null)
-			joint.connectedBody = null;
+				joint.connectedBody = null;
+				
+
+		if (impulse)
+		{
+			Vector2 currentMomentum = rb.linearVelocity;
+			rb.AddForce(currentMomentum * releaseImpulseMultiplier, ForceMode2D.Impulse);
+		}		
+
+	
 		currentLineRenderer.ClearRope();
 		currentLineRenderer = null;
-		currentWebJoint = null;		
+		currentWebJoint = null;	
+		
+
 	}
 
 	async void AttachWeb()
 	{
 		//Debug.Break();
+
+		if (currentWebJoint != null)
+			DettachWeb(true);
+		
+		animator.SetTrigger("web");
 		Vector2 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
 		RaycastHit2D hit = Physics2D.Raycast(mouseWorldPos, Vector2.zero, 0f, attachableLayers);
@@ -60,8 +89,7 @@ public class WebController : MonoBehaviour
 
 
 		// Verifica se está no chão antes de pular
-		RaycastHit2D groundHit = Physics2D.Raycast(transform.position, Vector2.down, groundDistance, groundLayers);
-		if (groundHit.collider != null)
+		if (onGround)
 			rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
 
 		await Awaitable.WaitForSecondsAsync(0.1f);
@@ -69,10 +97,9 @@ public class WebController : MonoBehaviour
 		HingeJoint2D newJoint = Instantiate(webJoint, mouseWorldPos, Quaternion.identity);
 		LineWeb newLine = Instantiate(lineWeb);
 		lineWeb.transform.position = transform.position;
+		lineWeb.DrawRope(transform.position);
 		await AnimateWebShot(mouseWorldPos, newLine);
 		
-
-		//DrawRope(mouseWorldPos, newLine);
 		newJoint.connectedBody = newLine.GetComponent<Rigidbody2D>();
 		newLine.GetComponent<FixedJoint2D>().connectedBody = rb;
 
@@ -97,8 +124,9 @@ public class WebController : MonoBehaviour
 			float t = elapsedTime / totalTime; 
 
 			
-			Vector2 webTipPosition = Vector2.Lerp(startPosition, targetAnchor, t);
+			Vector2 webTipPosition = Vector2.Lerp(transform.position, targetAnchor, t);
 
+			line.transform.position = transform.position;
 			line.DrawRope(webTipPosition);
 
 			//line.positionCount = 2; 
@@ -122,7 +150,7 @@ public class WebController : MonoBehaviour
 
 
 	private void OnCollisionEnter2D(Collision2D collision)
-	{
-		DettachWeb();
+	{		
+		DettachWeb(false);		
 	}
 }
