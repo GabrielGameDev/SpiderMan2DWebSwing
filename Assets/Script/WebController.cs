@@ -39,8 +39,8 @@ public class WebController : MonoBehaviour
 		currentLineRenderer.GetComponent<FixedJoint2D>().connectedBody = null;
 		currentLineRenderer = null;
 		currentWebJoint = null;
-		rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-		rb.AddForce(Vector2.right * jumpForce, ForceMode2D.Impulse);
+		rb.AddForce(Vector2.up * jumpForce/2, ForceMode2D.Impulse);
+		rb.AddForce(Vector2.right * jumpForce/2, ForceMode2D.Impulse);
 	}
 
 	async void AttachWeb()
