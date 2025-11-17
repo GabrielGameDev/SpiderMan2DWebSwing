@@ -24,10 +24,23 @@ public class WebController : MonoBehaviour
 		{
 			AttachWeb();
 		}
-		if(currentWebJoint != null)
+		if(Input.GetMouseButtonDown(1) && currentWebJoint != null)
+		{
+			DettachWeb();
+		}
+		if (currentWebJoint != null)
 		{
 			DrawRope(currentWebJoint.transform.position, currentLineRenderer);
 		}
+	}
+
+	void DettachWeb()
+	{
+		currentLineRenderer.GetComponent<FixedJoint2D>().connectedBody = null;
+		currentLineRenderer = null;
+		currentWebJoint = null;
+		rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+		rb.AddForce(Vector2.right * jumpForce, ForceMode2D.Impulse);
 	}
 
 	async void AttachWeb()
@@ -41,7 +54,7 @@ public class WebController : MonoBehaviour
 
 		rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
 
-		await Awaitable.WaitForSecondsAsync(0.1f);
+		await Awaitable.WaitForSecondsAsync(0.2f);
 
 		HingeJoint2D newJoint = Instantiate(webJoint, mouseWorldPos, Quaternion.identity);
 		LineRenderer newLine = Instantiate(lineRenderer);

@@ -751,7 +751,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   lineRenderer: {fileID: 337880561785016928, guid: 39c4b1787a49b7a47a889996b775c8a1, type: 3}
-  jumpForce: 7
+  jumpForce: 4
 --- !u!61 &1094014451
 BoxCollider2D:
   m_ObjectHideFlags: 0
