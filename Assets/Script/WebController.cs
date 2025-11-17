@@ -1,9 +1,22 @@
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class WebController : MonoBehaviour
 {
     public HingeJoint2D webJoint;
 	public LayerMask attachableLayers;
+	public LineRenderer lineRenderer;
+
+	public float jumpForce = 10f;
+	Rigidbody2D rb;
+	
+	HingeJoint2D currentWebJoint;
+	LineRenderer currentLineRenderer;
+
+	private void Start()
+	{
+		rb = GetComponent<Rigidbody2D>();
+	}
 
 	private void Update()
 	{
@@ -11,15 +24,39 @@ public class WebController : MonoBehaviour
 		{
 			AttachWeb();
 		}
+		if(currentWebJoint != null)
+		{
+			DrawRope(currentWebJoint.transform.position, currentLineRenderer);
+		}
 	}
 
-	void AttachWeb()
+	async void AttachWeb()
 	{
 		Vector2 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
 		RaycastHit2D hit = Physics2D.Raycast(mouseWorldPos, Vector2.zero, 0f, attachableLayers);
 		if (hit.collider == null)
 			return;
+
+
+		rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+
+		await Awaitable.WaitForSecondsAsync(0.1f);
+
 		HingeJoint2D newJoint = Instantiate(webJoint, mouseWorldPos, Quaternion.identity);
+		LineRenderer newLine = Instantiate(lineRenderer);
+		currentWebJoint = newJoint;
+		currentLineRenderer = newLine;
+
+		DrawRope(mouseWorldPos, newLine);
+		newJoint.connectedBody = newLine.GetComponent<Rigidbody2D>();
+		newLine.GetComponent<FixedJoint2D>().connectedBody = rb;
+
+	}
+
+	private void DrawRope(Vector2 mouseWorldPos, LineRenderer newLine)
+	{
+		newLine.SetPosition(0, transform.position);
+		newLine.SetPosition(1, mouseWorldPos);
 	}
 }
