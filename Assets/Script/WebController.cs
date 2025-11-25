@@ -29,6 +29,8 @@ public class WebController : MonoBehaviour
 	int websUsed = 0;
 	
 	bool canAttachWeb = true;
+
+	AudioSource audioSource;
 	public void SetCanAttachWeb(bool canAttach)
 	{
 		canAttachWeb = canAttach;
@@ -38,6 +40,7 @@ public class WebController : MonoBehaviour
 	{
 		rb = GetComponent<Rigidbody2D>();
 		animator = GetComponent<Animator>();
+		audioSource = GetComponent<AudioSource>();
 	}
 
 	private void Update()
@@ -108,15 +111,17 @@ public class WebController : MonoBehaviour
 		if (onGround)
 			rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
 
+		audioSource.Play();
 		await Awaitable.WaitForSecondsAsync(0.1f);
+		
 		websUsed++;
 		OnWebAttached?.Invoke(websUsed);
-		HingeJoint2D newJoint = Instantiate(webJoint, mouseWorldPos, Quaternion.identity);
+		
 		LineWeb newLine = Instantiate(lineWeb);
 		lineWeb.transform.position = transform.position;
 		lineWeb.DrawRope(transform.position);
 		await AnimateWebShot(mouseWorldPos, newLine);
-		
+		HingeJoint2D newJoint = Instantiate(webJoint, mouseWorldPos, Quaternion.identity);
 		newJoint.connectedBody = newLine.GetComponent<Rigidbody2D>();
 		newLine.GetComponent<FixedJoint2D>().connectedBody = rb;
 

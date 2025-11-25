@@ -10,10 +10,15 @@ public class LevelManager : MonoBehaviour
 	public Transform playerTransform;
 	float distanceTravelled = 0f;
 	bool firstFall = true;
+
+	public AudioClip[] fallSounds;
+	AudioSource audioSource;
+	bool gameOver = false;
 	private void Start()
 	{
 		WebController.OnWebAttached += UpdateWebs;
 		WebController.OnFall += HandlePlayerFall;
+		audioSource = GetComponent<AudioSource>();
 	}
 
 	private void OnDestroy()
@@ -48,11 +53,16 @@ public class LevelManager : MonoBehaviour
 
 	IEnumerator HandlePlayerFallRoutine()
 	{
+		if(gameOver)
+			yield break;
 		if (firstFall)
 		{
 			firstFall = false;
 			yield break;
 		}
+		gameOver = true;
+		int randomIndex = Random.Range(0, fallSounds.Length);
+		audioSource.PlayOneShot(fallSounds[randomIndex]);
 		playerTransform.GetComponent<WebController>().SetCanAttachWeb(false);
 		yield return new WaitForSeconds(3f);
 		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
