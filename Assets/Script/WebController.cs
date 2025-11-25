@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class WebController : MonoBehaviour
 {
@@ -21,6 +22,18 @@ public class WebController : MonoBehaviour
 
 	Animator animator;
 	bool onGround = false;
+
+	public static UnityAction<int> OnWebAttached;
+	public static UnityAction OnFall;
+
+	int websUsed = 0;
+	
+	bool canAttachWeb = true;
+	public void SetCanAttachWeb(bool canAttach)
+	{
+		canAttachWeb = canAttach;
+	}
+
 	private void Start()
 	{
 		rb = GetComponent<Rigidbody2D>();
@@ -29,7 +42,10 @@ public class WebController : MonoBehaviour
 
 	private void Update()
 	{
-		if(Input.GetMouseButtonDown(0))
+		if (!canAttachWeb)
+			return;
+
+		if (Input.GetMouseButtonDown(0))
 		{
 			AttachWeb();
 		}
@@ -93,7 +109,8 @@ public class WebController : MonoBehaviour
 			rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
 
 		await Awaitable.WaitForSecondsAsync(0.1f);
-
+		websUsed++;
+		OnWebAttached?.Invoke(websUsed);
 		HingeJoint2D newJoint = Instantiate(webJoint, mouseWorldPos, Quaternion.identity);
 		LineWeb newLine = Instantiate(lineWeb);
 		lineWeb.transform.position = transform.position;
@@ -151,6 +168,7 @@ public class WebController : MonoBehaviour
 
 	private void OnCollisionEnter2D(Collision2D collision)
 	{		
-		DettachWeb(false);		
+		DettachWeb(false);	
+		OnFall?.Invoke();
 	}
 }
