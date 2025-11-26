@@ -29,11 +29,14 @@ public class WebController : MonoBehaviour
 	int websUsed = 0;
 	
 	bool canAttachWeb = true;
+	bool isDead = false;
 
 	AudioSource audioSource;
-	public void SetCanAttachWeb(bool canAttach)
+
+
+	public void SetIsDead(bool dead)
 	{
-		canAttachWeb = canAttach;
+		isDead = dead;
 	}
 
 	private void Start()
@@ -45,7 +48,7 @@ public class WebController : MonoBehaviour
 
 	private void Update()
 	{
-		if (!canAttachWeb)
+		if (!canAttachWeb || isDead)
 			return;
 
 		if (Input.GetMouseButtonDown(0))
@@ -61,12 +64,14 @@ public class WebController : MonoBehaviour
 		//	DrawRope(currentWebJoint.transform.position, currentLineRenderer);
 		//}
 
-		// Verifica se está no chão
+		// Verifica se estï¿½ no chï¿½o
 		RaycastHit2D groundHit = Physics2D.Raycast(transform.position, Vector2.down, groundDistance, groundLayers);
 		onGround = groundHit.collider != null;
 		animator.SetBool("onGround", onGround);
 
 	}
+
+	
 
 	void DettachWeb(bool impulse)
 	{
@@ -80,8 +85,15 @@ public class WebController : MonoBehaviour
 
 		if (impulse)
 		{
-			Vector2 currentMomentum = rb.linearVelocity;
-			rb.AddForce(currentMomentum * releaseImpulseMultiplier, ForceMode2D.Impulse);
+			
+			Vector2 direction = rb.linearVelocity.normalized;
+			
+			if (direction == Vector2.zero)
+			{				
+				direction = transform.right; 
+			}
+
+			rb.AddForce(direction * releaseImpulseMultiplier, ForceMode2D.Impulse);
 		}		
 
 	
@@ -94,20 +106,23 @@ public class WebController : MonoBehaviour
 
 	async void AttachWeb()
 	{
-		//Debug.Break();
-
+		//Debug.Break();		
 		if (currentWebJoint != null)
 			DettachWeb(true);
-		
+		canAttachWeb = false;
 		animator.SetTrigger("web");
 		Vector2 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
 		RaycastHit2D hit = Physics2D.Raycast(mouseWorldPos, Vector2.zero, 0f, attachableLayers);
 		if (hit.collider == null)
+		{
+			canAttachWeb = true;
 			return;
+		}
+			
 
 
-		// Verifica se está no chão antes de pular
+		// Verifica se estï¿½ no chï¿½o antes de pular
 		if (onGround)
 			rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
 
@@ -128,7 +143,7 @@ public class WebController : MonoBehaviour
 		currentWebJoint = newJoint;
 		currentLineRenderer = newLine;
 		currentLineRenderer.webJoint = currentWebJoint.transform;
-
+		canAttachWeb = true;
 	}
 
 	async Awaitable AnimateWebShot(Vector2 targetAnchor, LineWeb line)
@@ -139,7 +154,7 @@ public class WebController : MonoBehaviour
 		float totalTime = totalDistance / webSpeed;
 		float elapsedTime = 0f;
 
-		// Animação Frame a Frame
+		// Animaï¿½ï¿½o Frame a Frame
 		while (elapsedTime < totalTime)
 		{
 			elapsedTime += Time.deltaTime;
@@ -161,7 +176,7 @@ public class WebController : MonoBehaviour
 			
 			rb.AddForce(pullDirection * launchPullForce, ForceMode2D.Force);
 
-			await Awaitable.NextFrameAsync(); 
+			await Awaitable.FixedUpdateAsync(); 
 		}
 
 		// Garante que o desenho chegue no ponto exato no final

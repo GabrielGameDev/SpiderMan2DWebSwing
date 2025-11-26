@@ -2798,7 +2798,7 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0
+  m_LinearDamping: 0.5
   m_AngularDamping: 0.05
   m_GravityScale: 1
   m_Material: {fileID: 0}
@@ -2830,8 +2830,8 @@ MonoBehaviour:
     m_Bits: 64
   lineWeb: {fileID: 2067426084851719971, guid: 39c4b1787a49b7a47a889996b775c8a1, type: 3}
   webSpeed: 10
-  launchPullForce: 20
-  releaseImpulseMultiplier: 2
+  launchPullForce: 22
+  releaseImpulseMultiplier: 2.2
   jumpForce: 4
   groundLayers:
     serializedVersion: 2

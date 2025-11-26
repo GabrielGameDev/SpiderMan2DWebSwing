@@ -63,7 +63,7 @@ public class LevelManager : MonoBehaviour
 		gameOver = true;
 		int randomIndex = Random.Range(0, fallSounds.Length);
 		audioSource.PlayOneShot(fallSounds[randomIndex]);
-		playerTransform.GetComponent<WebController>().SetCanAttachWeb(false);
+		playerTransform.GetComponent<WebController>().SetIsDead(true);
 		yield return new WaitForSeconds(3f);
 		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
 	}
